@@ -1,5 +1,6 @@
 import StaticInitComponent from "./StaticTime";
 import RealTimeChartInitComponent from "./RealTime";
+import Binance from "./Binance";
 
 export default function App() {
   return (
@@ -9,6 +10,8 @@ export default function App() {
       <hr />
       <h1>Real Time</h1>
       <RealTimeChartInitComponent />
+      <h1>Binance</h1>
+      <Binance />
     </div>
   );
 }
