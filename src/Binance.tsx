@@ -6,6 +6,7 @@ export default function Binance() {
     // Durum yönetimi için useState kullanarak veri durumu oluşturma
     const [data, setData] = useState<Array<{ time: UTCTimestamp; open: number; high: number; low: number; close: number }>>([]);
     const chartContainerRef = useRef<HTMLDivElement>(null);
+    const ws = useRef<WebSocket | null>(null);
 
     // Binance API'sinden veri çekme
     useEffect(() => {
@@ -59,6 +60,21 @@ export default function Binance() {
             wickDownColor: '#ef5350',
         });
         candlestickSeries.setData(data);
+
+        // WebSocket bağlantısı kurma
+        ws.current = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@kline_1m');
+        ws.current.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            const kline = message.k;
+            const newCandle = {
+                time: kline.t / 1000 as UTCTimestamp,
+                open: parseFloat(kline.o),
+                high: parseFloat(kline.h),
+                low: parseFloat(kline.l),
+                close: parseFloat(kline.c),
+            };
+            candlestickSeries.update(newCandle);
+        };
 
         // Tooltip oluşturma
         const toolTip = document.createElement('div');
@@ -124,6 +140,9 @@ export default function Binance() {
         return () => {
             window.removeEventListener('resize', handleResize);
             chart.remove();
+            if (ws.current) {
+                ws.current.close();
+            }
         };
     }, [data]);
 
