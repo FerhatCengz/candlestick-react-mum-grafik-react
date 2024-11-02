@@ -96,6 +96,7 @@ export default function Binance() {
       };
       candlestickSeries.update(newCandle);
       setWsData(JSON.stringify(message, null, 2)); // Gelen veriyi wsData state'ine kaydet
+      document.title = `BTC/USDT: ${newCandle.close} | FC Yazılım`; // Sayfa başlığını güncelle
     };
 
     /* Tooltip oluşturma */
