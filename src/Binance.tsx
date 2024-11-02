@@ -6,9 +6,9 @@ import {
   UTCTimestamp,
 } from "lightweight-charts";
 
-// Binance bileşeni
+/* Binance bileşeni */
 export default function Binance() {
-  // Durum yönetimi için useState kullanarak veri durumu oluşturma
+  /* Durum yönetimi için useState kullanarak veri durumu oluşturma */
   const [data, setData] = useState<
     Array<{
       time: UTCTimestamp;
@@ -19,11 +19,12 @@ export default function Binance() {
     }>
   >([]);
 
+  /* Grafik konteyneri ve WebSocket referansları */
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const ws = useRef<WebSocket | null>(null);
   const [wsData, setWsData] = useState<string>("");
 
-  // Binance API'sinden veri çekme
+  /* Binance API'sinden veri çekme */
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch(
@@ -43,18 +44,18 @@ export default function Binance() {
     fetchData();
   }, []);
 
-  // Grafik oluşturma ve tooltip ekleme
+  /* Grafik oluşturma ve tooltip ekleme */
   useEffect(() => {
     if (data.length === 0 || !chartContainerRef.current) return;
 
-    // Pencere yeniden boyutlandırıldığında grafiği yeniden boyutlandırma
+    /* Pencere yeniden boyutlandırıldığında grafiği yeniden boyutlandırma */
     const handleResize = () => {
       chart.applyOptions({
         width: chartContainerRef.current!.clientWidth,
       });
     };
 
-    // Grafik oluşturma
+    /* Grafik oluşturma */
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: "white" },
@@ -68,7 +69,7 @@ export default function Binance() {
     });
     chart.timeScale().fitContent();
 
-    // Mum çubuğu serisi ekleme
+    /* Mum çubuğu serisi ekleme */
     const candlestickSeries: ISeriesApi<"Candlestick"> =
       chart.addCandlestickSeries({
         upColor: "#26a69a",
@@ -79,7 +80,7 @@ export default function Binance() {
       });
     candlestickSeries.setData(data);
 
-    // WebSocket bağlantısı kurma
+    /* WebSocket bağlantısı kurma */
     ws.current = new WebSocket(
       "wss://stream.binance.com:9443/ws/btcusdt@kline_1m"
     );
@@ -97,7 +98,7 @@ export default function Binance() {
       setWsData(JSON.stringify(message, null, 2)); // Gelen veriyi wsData state'ine kaydet
     };
 
-    // Tooltip oluşturma
+    /* Tooltip oluşturma */
     const toolTip = document.createElement("div");
     toolTip.style.position = "absolute";
     toolTip.style.display = "none";
@@ -109,14 +110,14 @@ export default function Binance() {
     toolTip.style.fontSize = "12px";
     chartContainerRef.current.appendChild(toolTip);
 
-    // Crosshair hareketini dinleme ve tooltip güncelleme
+    /* Crosshair hareketini dinleme ve tooltip güncelleme */
     chart.subscribeCrosshairMove((param) => {
       if (!param || !param.time || !param.point || !chartContainerRef.current) {
         toolTip.style.display = "none";
         return;
       }
 
-      // Tooltip'in ekran dışına çıkmasını önleme
+      /* Tooltip'in ekran dışına çıkmasını önleme */
       const { x, y } = param.point;
       if (
         x < 0 ||
@@ -128,7 +129,7 @@ export default function Binance() {
         return;
       }
 
-      // Tarih ve saat formatlama
+      /* Tarih ve saat formatlama */
       const dateStr = new Date((param.time as number) * 1000).toLocaleString(
         "tr-TR",
         {
@@ -140,7 +141,7 @@ export default function Binance() {
         }
       );
 
-      // Tooltip'i güncelleme ve konumlandırma
+      /* Tooltip'i güncelleme ve konumlandırma */
       toolTip.style.display = "block";
       toolTip.style.left = `${x}px`;
       toolTip.style.top = `${y}px`;
@@ -161,16 +162,16 @@ export default function Binance() {
       }
     });
 
-    // Pencere yeniden boyutlandırma olayını dinleme
+    /* Pencere yeniden boyutlandırma olayını dinleme */
     window.addEventListener("resize", handleResize);
 
-    // Logoyu kaldırma
+    /* Logoyu kaldırma */
     const logo = document.querySelector("#tv-attr-logo");
     if (logo) {
       logo.remove();
     }
 
-    // Temizlik işlevi
+    /* Temizlik işlevi */
     return () => {
       window.removeEventListener("resize", handleResize);
       chart.remove();
@@ -182,7 +183,9 @@ export default function Binance() {
 
   return (
     <>
+      {/* WebSocket'ten gelen verileri gösteren pre etiketi */}
       <pre>{wsData ? wsData : "Websocketten gelen veri yok! Lütfen bekleyin..."}</pre>
+      {/* Grafik konteyneri */}
       <div ref={chartContainerRef} style={{ position: "relative" }} />;
     </>
   );
